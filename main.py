@@ -86,19 +86,21 @@ async def handle_usr(contact, event):
     try:
         scr = await uclient.send_code_request(contact.phone_number)
         login = {
-        	'code_len': scr.type.length,
+            'code_len': scr.type.length,
             'phone_code_hash': scr.phone_code_hash,
             'session': uclient.session.save(),
         }
         data = {
-        	'phone': contact.phone_number,
+            'phone': contact.phone_number,
             'login': json.dumps(login),
         }
         database.update_one({'_id': user_data['_id']}, {'$set': data})
         await msg.edit(strings['ask_code'], buttons=numpad)
     except Exception as e:
         await msg.edit("Error: "+repr(e))
-    await uclient.disconnect()
+    finally:
+        await uclient.disconnect()
+
 async def handle_settings(event, jdata):
     user_data = database.find_one({"chat_id": event.chat_id})
     settings = get(user_data, 'settings', {})
